@@ -15,7 +15,8 @@ var s: array [0..maxStack] of integer;  //Stack
     PC: 0..maxProg; // Program Counter
     SP,LV: 0..maxStack; // Stack pointer, Local Variable frame pointer
     IR: byte; //Instruction Register
-    run: boolean = true;
+    running: boolean = true;
+    f: file of byte;
 //    i: integer;
 begin
     writeln('+----------------------------------------+');
@@ -25,23 +26,20 @@ begin
     writeln('| This program is stil under development |');
     writeln('| Everything can be changed              |'); 
     writeln('+----------------------------------------+'); 
-    
-(* a program *)
 
-    p[0] := 2; p[1] := 0; p[2] := 10; 	//	LIT 10
-    p[3] := 10;				//LOOP 	DUP
-    p[4] := 20;				//	WRITE
-    p[5] := 2; p[6] := 0; p[7] := 1;	//	LIT 1
-    p[8] := 4; 				//	SUB
-    p[9] := 10;				//	DUP
-    p[10] := 9; p[11] := 0; p[12] := 16;//	JPL EXIT   
-    p[13] := 7; p[14] := 0; p[15] := 3;	//	JMP LOOP
-    p[16] := 1;				//EXIT	HALT
-        
+    assign(f,'a.out');
+    reset(f);
+    PC := 0;
+    while not eof(f) do 
+    begin
+	read(f,p[PC]);
+	inc(PC)
+    end;
+    close(f);
         
     PC := 0; SP := 0; LV := 0; 
     
-    while run do
+    while running do
     begin
 	IR := p[PC]; inc(PC);
 //	writeln(' ',IR,' ',PC,' ',SP);
@@ -49,19 +47,15 @@ begin
 //	readln;
 	case IR of
 {NOP}	    0: ; 
-{HALT}	    1: run := false; 
+{HALT}	    1: running := false; 
 {LIT}	    2: begin s[SP] := p[PC]*256+p[PC+1]; inc(PC,2); inc(SP) end;
 {ADD}	    3: begin dec(SP); s[SP-1] := s[SP-1] + s[SP] end;
 {SUB}       4: begin dec(SP); s[SP-1] := s[SP-1] - s[SP] end;
 {MUL}	    5: begin dec(SP); s[SP-1] := s[SP-1] * s[SP] end;
 {DIV}       6: begin dec(SP); s[SP-1] := s[SP-1] div s[SP] end;
 {JMP}       7: PC := p[PC]*256+p[PC+1];
-{JPZ}       8: begin dec(SP); if s[SP]=0 then PC := p[PC]*256+p[PC+1] 
-		                         else inc(PC,2) 
-		end;
-{JPL}	    9: begin dec(SP); if s[SP]<0 then PC := p[PC]*256+p[PC+1]
-					 else inc(PC,2) 
-		end;
+{JPZ}       8: begin dec(SP); if s[SP]=0 then PC := p[PC]*256+p[PC+1] else inc(PC,2) end;
+{JPL}	    9: begin dec(SP); if s[SP]<0 then PC := p[PC]*256+p[PC+1] else inc(PC,2) end;
 {DUP}	    10: begin s[SP] := s[SP-1]; inc(SP) end;
 {WRITE}     20: begin dec(SP); writeln(s[SP]) end;
 	else

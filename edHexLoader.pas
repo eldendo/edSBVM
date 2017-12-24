@@ -3,6 +3,7 @@ program edHexLoader;
 uses strutils;
 
 var hex: string ='';
+    f: file of byte;
 
 begin
     writeln('+-------------------------------------+');
@@ -10,6 +11,8 @@ begin
     writeln('| (C)2017 by ir. Marc Dendooven       |');
     writeln('+-------------------------------------+');
     writeln;
+    assign(f,'a.out');
+    rewrite(f);
     readln(hex);
     while hex<>'x' do 
     begin
@@ -17,10 +20,10 @@ begin
 	else
 		while hex<>'' do
 		begin
-		    writeln(Hex2Dec(leftStr(hex,2)));
+		    write(f,Hex2Dec(leftStr(hex,2)));
 		    hex := copy(hex,3,length(hex))
 		end;
 	readln(hex)
     end;
-    
+    close(f)
 end.
